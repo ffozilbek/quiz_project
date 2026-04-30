@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+.container {
+  @apply max-w-300 mx-auto px-6;
+}
+
+section {
+  @apply my-20;
+}
