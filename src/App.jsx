@@ -6,9 +6,6 @@ const App = () => {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer>
-        <p>&copy; 2023 My App. All rights reserved.</p>
-      </footer>
     </div>
   );
 };
