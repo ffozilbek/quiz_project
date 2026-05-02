@@ -105,7 +105,8 @@ const Quiz = () => {
 
   useEffect(() => {
     getRandomQuestion();
-  }, [getRandomQuestion]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <section className="my-8">
