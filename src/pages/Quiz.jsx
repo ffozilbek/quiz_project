@@ -1,53 +1,103 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 import { useNavigate } from "react-router";
 import db from "../../public/db.json";
 
-const Quiz = () => {
-  const [question] = useState(db);
-  const [usedIndex, setUsedIndex] = useState([]);
-  const [currentQuestion, setCurrentQuestion] = useState(null);
-  const [isFinish, setIsFinish] = useState(false);
-  const [score, setScore] = useState(0);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("");
+const initialState = {
+  usedIndex: [],
+  currentQuestion: null,
+  isFinish: false,
+  score: 0,
+  isAnswered: false,
+  selectedOption: "",
+  timer: 10,
+};
 
+const quizReducer = (state, action) => {
+  switch (action.type) {
+    case "SET_QUESTION": {
+      const { question, index } = action.payload;
+      return {
+        ...state,
+        currentQuestion: question,
+        usedIndex: [...state.usedIndex, index],
+        isAnswered: false,
+        selectedOption: "",
+        timer: 10,
+      };
+    }
+    case "SET_ANSWERED": {
+      const isCorrect = action.payload === state.currentQuestion.answer;
+      return {
+        ...state,
+        isAnswered: true,
+        selectedOption: action.payload,
+        score: isCorrect ? state.score + 1 : state.score,
+      };
+    }
+    case "SET_TIMOUT": {
+      return {
+        ...state,
+        isAnswered: true,
+        selectedOption: "",
+      };
+    }
+    case "TICK": {
+      return {
+        ...state,
+        timer: state.timer - 1,
+      };
+    }
+    case "SET_FINISH": {
+      return {
+        ...state,
+        isFinish: true,
+      };
+    }
+  }
+};
+
+const Quiz = () => {
+  const [state, dispatch] = useReducer(quizReducer, initialState);
+  const {
+    usedIndex,
+    currentQuestion,
+    isFinish,
+    score,
+    isAnswered,
+    selectedOption,
+    timer,
+  } = state;
+
+  const question = db;
   const navigation = useNavigate();
 
   useEffect(() => {
     if (isFinish) {
       navigation("/finish", { state: { score, question } });
     }
-  }, [isFinish]);
+  }, [isFinish, navigation, score, question]);
 
-  const getRandomQuestion = () => {
-    setUsedIndex((prev) => {
-      if (prev.length === question.length) {
-        setIsFinish(true);
-        return prev;
-      }
-
-      let randomIndex;
-      do {
-        randomIndex = Math.floor(Math.random() * question.length);
-      } while (prev.includes(randomIndex));
-
-      setCurrentQuestion(question[randomIndex]);
-
-      return [...prev, randomIndex];
-    });
-
-    setIsAnswered(false);
-    setSelectedOption("");
-  };
-
-  const handleAnswer = (option) => {
-    if (option === currentQuestion.answer) {
-      setScore((prev) => prev + 1);
+  const getRandomQuestion = useCallback(() => {
+    if (usedIndex.length === question.length) {
+      dispatch({ type: "SET_FINISH" });
+      return;
     }
 
-    setIsAnswered(true);
-    setSelectedOption(option);
+    let randomIndex;
 
+    do {
+      randomIndex = Math.floor(Math.random() * question.length);
+    } while (usedIndex.includes(randomIndex));
+
+    dispatch({
+      type: "SET_QUESTION",
+      payload: { question: question[randomIndex], index: randomIndex },
+    });
+  }, [usedIndex, question]);
+
+  const handleAnswer = (option) => {
+    if (isAnswered) return;
+    dispatch({ type: "SET_ANSWERED", payload: option });
     setTimeout(() => {
       getRandomQuestion();
     }, 700);
@@ -55,15 +105,25 @@ const Quiz = () => {
 
   useEffect(() => {
     getRandomQuestion();
-  }, []);
+  }, [getRandomQuestion]);
 
   return (
     <section className="my-8">
       <h1 className="text-4xl font-bold text-center mb-8 text-white">Quiz</h1>
       {/* QUESTIONS */}
       <div className="bg-white rounded-2xl shadow-lg/20 p-8">
-        <div className="mb-4">
-          Question {usedIndex.length} of {question.length}
+        <div className="flex justify-between items-center">
+          <div className="mb-4">
+            Question {usedIndex.length} of {question.length}
+          </div>
+          <div>
+            Timer:{" "}
+            <span
+              className={`${timer < 4 ? "text-red-500" : timer < 7 ? "text-yellow-500" : ""} font-semibold`}
+            >
+              {timer}
+            </span>
+          </div>
         </div>
         <div className="mb-8 text-center text-2xl font-bold text-[#312c51]">
           <p>{currentQuestion?.question}</p>
