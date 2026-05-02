@@ -44,7 +44,7 @@ https://roadmap.sh/projects/quiz-app
 4.The option was clicked, but it is not correct
 <img width="2559" height="1310" alt="Screenshot 2026-05-02 171546" src="https://github.com/user-attachments/assets/975dfc00-9060-4e50-ba34-3cb108cad973" />
 
-5.Finish
+5.Finish (score < 7 is red, score < 4 is red, default green)
 <img width="2559" height="1295" alt="Screenshot 2026-05-02 171601" src="https://github.com/user-attachments/assets/1ba8b1f3-0fe7-4ee8-afd8-4db07cdee04b" />
 
 ## Installation
