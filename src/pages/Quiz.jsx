@@ -34,11 +34,12 @@ const quizReducer = (state, action) => {
         score: isCorrect ? state.score + 1 : state.score,
       };
     }
-    case "SET_TIMOUT": {
+    case "SET_TIMEOUT": {
       return {
         ...state,
         isAnswered: true,
         selectedOption: "",
+        timer: 0,
       };
     }
     case "TICK": {
@@ -53,6 +54,9 @@ const quizReducer = (state, action) => {
         isFinish: true,
       };
     }
+
+    default:
+      return state;
   }
 };
 
@@ -102,6 +106,24 @@ const Quiz = () => {
       getRandomQuestion();
     }, 700);
   };
+
+  useEffect(() => {
+    if (!currentQuestion || isAnswered) return;
+
+    const interval = setInterval(() => {
+      if (timer <= 1) {
+        clearInterval(interval);
+        dispatch({ type: "SET_TIMEOUT" });
+        setTimeout(() => {
+          getRandomQuestion();
+        }, 700);
+        return;
+      }
+      dispatch({ type: "TICK" });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timer, isAnswered, currentQuestion, getRandomQuestion]);
 
   useEffect(() => {
     getRandomQuestion();
